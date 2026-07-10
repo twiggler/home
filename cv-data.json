@@ -1,0 +1,45 @@
+[
+  {
+    "company": "Senior Software Engineer Fox IT 2024-2026",
+    "details": [
+      "Dissect team Rijswijk"
+    ],
+    "bullets": [
+      "Migrated over 30 individual projects into a monorepository with uv and custom tooling. Re-engineered CI/CD.",
+      "Drive initiative to improve observability, finding numerous instances where forensics evidence was missed.",
+      "Added python nfs client client for data acquisition, speeding up acquisition of virtual machines in time critical investigations.",
+      "Reliability improvements to filesystems, drastically reducing memory usage."
+    ]
+  },
+  {
+    "company": "Senior Software Engineer IQVIA 2023–2024",
+    "details": [
+      "App team Amsterdam"
+    ],
+    "bullets": [
+      "Extended the data pipeline and frontend capabilities to model complex temporal patient events, delivering a solution for researchers to track metrics of patients over time.",
+      "Championed the integration of Cypress end-to-end testing into the CI/CD pipeline, ensuring automated validation on every pull request commit to prevent regressions, significantly increasing stakeholder confidence in release stability."
+    ]
+  },
+  {
+    "company": "Team Lead RoyalHaskoningDHV 2018–2023",
+    "details": [
+      "Rotterdam"
+    ],
+    "bullets": [
+      "Developed an interactive frontend for a flood risk tool, visualizing probability and financial impact metrics to enable rich client presentations by consultants.",
+      "Led the end-to-end architecture and development of a tablet-optimized tool for on-site inspections. Designed a React / TypeScript frontend for survey construction and dynamic report templating, and a Kotlin backend for automated document generation, partially automating manual reporting workflow and resulting in a 30% cost reduction."
+    ]
+  },
+  {
+    "company": "Medior Software Engineer Mendix 2016-2018",
+    "details": [
+      "Rotterdam"
+    ],
+    "bullets": [
+      "Spearheaded the strategic migration of the Mendix mobile platform, successfully pitching management to deprecate Cordova in favor of a modern React Native architecture.",
+      "Rewrote the Mendix developer app, engineering a robust mobile environment for developers to seamlessly test, preview, and communicate about their mobile Mendix applications",
+      "Drove long-term technical strategy by proving the viability of React Native, initiating an enduring shift in the company's"
+    ]
+  }
+]

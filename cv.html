@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV – Twiggler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #f7fafc; }
+
+    /* ── Shared header ── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background: rgba(0,0,0,0.92);
+      border-bottom: 1px solid rgba(255,232,31,0.25);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0 1.5rem;
+      z-index: 100;
+    }
+    .site-header img {
+      height: 38px;
+      width: 56px;
+      object-fit: cover;
+      object-position: center 20%;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .site-name {
+      color: #FFE81F;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .site-nav { display: flex; gap: 0.25rem; }
+    .site-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .site-nav a:hover, .site-nav a.active {
+      color: #FFE81F;
+      background: rgba(255,232,31,0.08);
+    }
+    .site-nav svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── CV page ── */
+    .cv-page {
+      padding-top: 60px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .cv-toolbar {
+      padding: 0.6rem 1.5rem;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .cv-toolbar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #2b6cb0;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 5px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .cv-toolbar a:hover { background: #21568f; }
+    .cv-toolbar svg { width: 14px; height: 14px; }
+    .cv-embed {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <img src="profile.jpg" alt="Photo of Twiggler">
+  <span class="site-name">Twiggler</span>
+  <nav class="site-nav">
+    <a href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Home
+    </a>
+    <a href="cv.html" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      CV
+    </a>
+  </nav>
+</header>
+
+<div class="cv-page">
+  <div class="cv-toolbar">
+    <a href="https://docs.google.com/document/d/1WmBpj9NsFSwFfTtkKLUIlDCOaudItPhyOD2GfDmb7Lg/edit?usp=sharing"
+       target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      Open in Google Docs
+    </a>
+  </div>
+  <iframe
+    class="cv-embed"
+    src="https://docs.google.com/document/d/1WmBpj9NsFSwFfTtkKLUIlDCOaudItPhyOD2GfDmb7Lg/preview"
+    title="CV of Twiggler"
+    loading="lazy">
+  </iframe>
+</div>
+
+</body>
+</html>
