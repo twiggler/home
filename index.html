@@ -103,7 +103,7 @@
       top: 100%;
       left: 50%;
       transform: translateX(-50%);
-      width: min(60%, 600px);
+      width: min(82%, 860px);
       color: #FFE81F;
       font-family: 'News Cycle', sans-serif;
       text-align: justify;
@@ -154,7 +154,7 @@
     }
     .ep-details {
       text-align: center;
-      font-size: 1.45rem;
+      font-size: 1.05rem;
       opacity: 0.6;
       margin-bottom: 2rem;
     }
@@ -163,7 +163,16 @@
       line-height: 1.85;
       margin-bottom: 1.1rem;
     }
-    .ep-bullet::before { content: '\25B8\00A0\00A0'; }
+    .ep-bullet::before { content: ''; }
+
+    /* ── Mobile: scale fonts back down ── */
+    @media (max-width: 600px) {
+      .ep-intro   { font-size: 1rem; }
+      .ep-num     { font-size: 0.8rem; }
+      .ep-company { font-size: 1.5rem; }
+      .ep-details { font-size: 0.8rem; }
+      .ep-bullet  { font-size: 1rem; }
+    }
   </style>
 </head>
 <body>
