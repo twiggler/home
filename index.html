@@ -174,35 +174,65 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 1.8rem;
       z-index: 200;
-      cursor: pointer;
       user-select: none;
     }
     #start-overlay p {
+      color: rgba(255,232,31,0.55);
+      font-family: 'News Cycle', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .begin-btns {
+      display: flex;
+      gap: 1.2rem;
+    }
+    .begin-btn {
+      background: transparent;
+      border: 1px solid rgba(255,232,31,0.55);
       color: #FFE81F;
       font-family: 'News Cycle', sans-serif;
-      font-size: 1.1rem;
-      letter-spacing: 0.25em;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      animation: blink 1.4s ease-in-out infinite;
+      padding: 0.65rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
     }
+    .begin-btn:hover, .begin-btn:focus-visible {
+      background: rgba(255,232,31,0.1);
+      border-color: #FFE81F;
+      outline: none;
+    }
+    @keyframes btn-hit {
+      0%   { transform: scale(1);    filter: none; }
+      18%  { transform: scale(0.84); filter: drop-shadow(0 0 10px #00FF41) drop-shadow(0 0 22px #00FF41); }
+      50%  { transform: scale(1.07); filter: drop-shadow(0 0 4px #00FF41); }
+      100% { transform: scale(1);    filter: none; }
+    }
+    .begin-btn.hit { animation: btn-hit 0.55s ease-out forwards; }
+    /* Text and buttons sit between the two canvas layers */
+    #start-overlay > p,
+    .begin-btns { position: relative; z-index: 10; }
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.25; }
     }
     #laser-canvas {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0; width: 100%; height: 100%;
       pointer-events: none;
+      z-index: 0;   /* behind buttons */
     }
-    #laser-canvas {
+    #impact-canvas {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0; width: 100%; height: 100%;
       pointer-events: none;
+      z-index: 20;  /* in front of buttons */
     }
 
     /* ── Mobile: scale fonts back down ── */
@@ -244,9 +274,14 @@
 
 <audio id="music" loop src="Departure_from_Proxima.mp3"></audio>
 
-<div id="start-overlay" role="button" aria-label="Click to begin">
+<div id="start-overlay">
   <canvas id="laser-canvas"></canvas>
-  <p>Click anywhere to begin</p>
+  <canvas id="impact-canvas"></canvas>
+  <p>Choose your experience</p>
+  <div class="begin-btns">
+    <button class="begin-btn" id="btn-sound">&#9654;&nbsp; With sound</button>
+    <button class="begin-btn" id="btn-muted">&#x1F507;&nbsp; Muted</button>
+  </div>
 </div>
 
 <canvas id="stars"></canvas>
@@ -369,14 +404,54 @@
       } catch (e) {}
     }
 
-    function fireLasers(tx, ty, done) {
+    function drawImpact(tx, ty) {
+      var ic = document.getElementById('impact-canvas');
+      ic.width = window.innerWidth; ic.height = window.innerHeight;
+      var ctx = ic.getContext('2d');
+      var t0 = null, dur = 420;
+      function frame(ts) {
+        if (!t0) t0 = ts;
+        var p = Math.min(1, (ts - t0) / dur);
+        var a = 1 - p;
+        ctx.clearRect(0, 0, ic.width, ic.height);
+        /* Expanding ring */
+        ctx.save();
+        ctx.globalAlpha = a * 0.7;
+        ctx.strokeStyle = '#00FF41';
+        ctx.lineWidth = 2.5;
+        ctx.shadowBlur = 14; ctx.shadowColor = '#00FF41';
+        ctx.beginPath(); ctx.arc(tx, ty, p * 58, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        /* 8 sparks radiating outward */
+        for (var i = 0; i < 8; i++) {
+          var angle = (i / 8) * Math.PI * 2;
+          var r1 = p * 22;
+          var r2 = r1 + (16 + (i % 3) * 12) * (1 - p * 0.35);
+          ctx.save();
+          ctx.globalAlpha = a * 0.95;
+          ctx.strokeStyle = '#DFFFDF';
+          ctx.lineWidth = 1.8;
+          ctx.shadowBlur = 7; ctx.shadowColor = '#00FF41';
+          ctx.beginPath();
+          ctx.moveTo(tx + Math.cos(angle) * r1, ty + Math.sin(angle) * r1);
+          ctx.lineTo(tx + Math.cos(angle) * r2, ty + Math.sin(angle) * r2);
+          ctx.stroke();
+          ctx.restore();
+        }
+        if (p < 1) { requestAnimationFrame(frame); }
+        else { ctx.clearRect(0, 0, ic.width, ic.height); }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function fireLasers(tx, ty, withSound, done) {
       lc.width  = window.innerWidth;
       lc.height = window.innerHeight;
       var ctx = lc.getContext('2d');
       /* Twin cannon sources: top-left and top-right, like a TIE above the viewer */
       var sources = [
-        { x: window.innerWidth * 0.08, y: -20 },
-        { x: window.innerWidth * 0.92, y: -20 }
+        { x: window.innerWidth * 0.08, y: window.innerHeight + 20 },
+        { x: window.innerWidth * 0.92, y: window.innerHeight + 20 }
       ];
       var t0 = null, dur = 520;
       function frame(ts) {
@@ -406,23 +481,28 @@
         if (p < 1) { requestAnimationFrame(frame); }
         else { ctx.clearRect(0, 0, lc.width, lc.height); done(); }
       }
-      playTieSound();
+      if (withSound) playTieSound();
+      drawImpact(tx, ty);
       requestAnimationFrame(frame);
     }
 
-    function begin(e) {
+    function begin(e, muted) {
       if (fired) return;
       fired = true;
+      if (e && e.target && e.target.classList.contains('begin-btn')) {
+        e.target.classList.add('hit');
+      }
       var x = (e && e.clientX != null) ? e.clientX : window.innerWidth  / 2;
       var y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
-      fireLasers(x, y, function () {
+      fireLasers(x, y, !muted, function () {
         overlay.remove();
-        music.play().catch(function () {});
+        if (!muted) music.play().catch(function () {});
         scroll.classList.add('running');
       });
     }
-    overlay.addEventListener('click', begin);
-    document.addEventListener('keydown', begin, { once: true });
+    document.getElementById('btn-sound').addEventListener('click', function (e) { begin(e, false); });
+    document.getElementById('btn-muted').addEventListener('click', function (e) { begin(e, true);  });
+    document.addEventListener('keydown', function (e) { begin(e, false); }, { once: true });
   });
 }());
 </script>
