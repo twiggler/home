@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects – Twiggler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; background: #000; }
+
+    /* ── Shared header ── */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background: rgba(0,0,0,0.92);
+      border-bottom: 1px solid rgba(255,232,31,0.25);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0 1.5rem;
+      z-index: 100;
+    }
+    .site-header img {
+      height: 38px; width: 56px;
+      object-fit: cover; object-position: center 20%;
+      border-radius: 5px; flex-shrink: 0;
+    }
+    .site-name {
+      color: #FFE81F;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      flex: 1;
+    }
+    .site-nav { display: flex; gap: 0.25rem; }
+    .site-nav a {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 0.9rem; letter-spacing: 0.05em;
+      padding: 0.35rem 0.75rem; border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .site-nav a:hover, .site-nav a.active {
+      color: #FFE81F; background: rgba(255,232,31,0.08);
+    }
+    .site-nav svg { width: 14px; height: 14px; flex-shrink: 0; }
+    /* ── Hamburger ── */
+    .hamburger {
+      display: none; flex-direction: column; justify-content: center;
+      gap: 5px; background: none; border: none;
+      cursor: pointer; padding: 4px; flex-shrink: 0;
+    }
+    .hamburger span {
+      display: block; width: 20px; height: 2px;
+      background: #FFE81F; border-radius: 2px; transition: 0.2s;
+    }
+    @media (max-width: 650px) {
+      .hamburger { display: flex; }
+      .site-nav {
+        display: none; flex-direction: column;
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: rgba(0,0,0,0.97);
+        border-bottom: 1px solid rgba(255,232,31,0.25);
+        padding: 0.5rem 1rem 1rem; z-index: 99;
+      }
+      .site-nav.open { display: flex; }
+      .site-nav a {
+        padding: 0.75rem 0.5rem; border-radius: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+      }
+      .site-nav a:last-child { border-bottom: none; }
+    }
+
+    /* ── Planet map ── */
+    #map-container {
+      position: fixed;
+      top: 60px; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+    }
+    /* Warp animation: ship idles, then fires engines, then full acceleration */
+    @keyframes warp {
+      0%   { transform: scale(1);    }  /* engines idle */
+      45%  { transform: scale(1.12); }  /* slow drift */
+      65%  { transform: scale(2.4);  }  /* thrusters firing */
+      82%  { transform: scale(6);    }  /* fast approach */
+      100% { transform: scale(14);   }  /* warp */
+    }
+    #map-container.zooming {
+      animation: warp 1.4s linear forwards;
+    }
+
+    #planet-map {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      user-select: none; pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ── Hotspots ── */
+    .hotspot {
+      position: absolute;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 5;
+    }
+    /* Radar ping ring */
+    .hotspot::after {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,232,31,0.5);
+      animation: ping 2.6s ease-out infinite;
+    }
+    .hotspot:nth-of-type(2)::after { animation-delay: -0.87s; }
+    .hotspot:nth-of-type(3)::after { animation-delay: -1.74s; }
+    @keyframes ping {
+      0%   { transform: scale(0.85); opacity: 0.65; }
+      65%  { transform: scale(1.3);  opacity: 0; }
+      100% { transform: scale(1.3);  opacity: 0; }
+    }
+
+    /* ── Callout card ── */
+    #callout {
+      position: fixed;
+      z-index: 60;
+      max-width: 310px;
+      background: rgba(4,4,8,0.94);
+      border: 1px solid rgba(255,232,31,0.35);
+      border-radius: 8px;
+      padding: 1rem 1.15rem 0.9rem;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.18s, transform 0.18s;
+      font-family: 'News Cycle', sans-serif;
+    }
+    #callout.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .callout-title {
+      color: #FFE81F;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+    .callout-tags {
+      color: rgba(255,232,31,0.45);
+      font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .callout-desc {
+      color: rgba(255,255,255,0.82);
+      font-size: 0.9rem; line-height: 1.55;
+      margin-bottom: 0.8rem;
+    }
+    .callout-link {
+      display: inline-block;
+      color: #FFE81F; font-size: 0.85rem; letter-spacing: 0.07em;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,232,31,0.35);
+      transition: border-color 0.15s;
+    }
+    .callout-link:hover { border-color: #FFE81F; }
+
+    /* ── Hint bar ── */
+    @keyframes hint-pulse {
+      0%, 100% { box-shadow: 0 0 6px rgba(255,232,31,0.25); }
+      50%       { box-shadow: 0 0 16px rgba(255,232,31,0.65); }
+    }
+    #hint {
+      position: fixed;
+      top: 68px; left: 50%;
+      transform: translateX(-50%);
+      color: #FFE81F;
+      background: rgba(0,0,0,0.72);
+      border: 1px solid rgba(255,232,31,0.55);
+      border-radius: 4px;
+      padding: 0.35rem 1rem;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 0.95rem; letter-spacing: 0.1em;
+      pointer-events: none;
+      transition: opacity 0.6s;
+      z-index: 20;
+      white-space: nowrap;
+      animation: hint-pulse 2.4s ease-in-out infinite;
+    }
+    #hint.hidden { opacity: 0; animation: none; }
+
+    /* ── Portrait hint (phones in portrait) ── */
+    #portrait-hint {
+      display: none;
+      position: fixed;
+      bottom: 1.2rem; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.88);
+      border: 1px solid rgba(255,232,31,0.5);
+      border-radius: 20px;
+      color: #FFE81F;
+      font-family: 'News Cycle', sans-serif;
+      font-size: 0.85rem; letter-spacing: 0.08em;
+      padding: 0.45rem 0.7rem 0.45rem 1.1rem;
+      z-index: 200;
+      align-items: center; gap: 0.7rem;
+      white-space: nowrap;
+    }
+    #portrait-hint-close {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,232,31,0.65); font-size: 1rem;
+      padding: 0; line-height: 1; pointer-events: all;
+    }
+    #portrait-hint.dismissed { display: none !important; }
+    @media (max-width: 768px) and (orientation: portrait) {
+      #portrait-hint { display: flex; }
+    }
+
+    /* ── Mobile landscape: floating nav tab + header auto-hide ── */
+    #landscape-tab {
+      display: none;
+      position: fixed;
+      top: 8px; right: 10px;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      background: rgba(0,0,0,0.82);
+      border: 1px solid rgba(255,232,31,0.45);
+      border-radius: 5px;
+      padding: 6px 8px;
+      cursor: pointer;
+      z-index: 110;
+      transition: opacity 0.2s;
+    }
+    #landscape-tab span {
+      display: block; width: 18px; height: 2px;
+      background: #FFE81F; border-radius: 2px;
+    }
+    @media (orientation: landscape) and (max-width: 900px) and (max-height: 500px) {
+      .site-header {
+        transform: translateY(-100%);
+        transition: transform 0.25s ease;
+      }
+      body.header-visible .site-header { transform: translateY(0); }
+      #map-container { top: 0; transition: top 0.25s ease; }
+      body.header-visible #map-container { top: 60px; }
+      #hint { top: 10px; }
+      body.header-visible #hint { top: 68px; }
+      #landscape-tab { display: flex; }
+      body.header-visible #landscape-tab { opacity: 0.35; }
+      /* Hide built-in hamburger; nav stays inline inside the header */
+      .hamburger { display: none !important; }
+      .site-nav {
+        display: flex;
+        flex-direction: row;
+        position: static;
+        background: none;
+        border-bottom: none;
+        padding: 0;
+      }
+    }
+
+    /* ── Zoom veil ── */
+    #zoom-veil {
+      position: fixed; inset: 0;
+      background: #000; opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.4s ease;
+      z-index: 80;
+    }
+    #zoom-veil.zooming { opacity: 1; }
+
+  </style>
+</head>
+<body>
+
+<div id="portrait-hint">
+  <span>&#8635; Best viewed in landscape</span>
+  <button id="portrait-hint-close" aria-label="Dismiss hint">&#10005;</button>
+</div>
+
+<button id="landscape-tab" aria-label="Toggle navigation" aria-expanded="false">
+  <span></span><span></span><span></span>
+</button>
+
+<header class="site-header">
+  <img src="profile.jpg" alt="Photo of Twiggler">
+  <span class="site-name">Twiggler</span>
+  <nav class="site-nav" id="main-nav">
+    <a href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Home
+    </a>
+    <a href="cv.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      CV
+    </a>
+    <a href="projects.html" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+      </svg>
+      Projects
+    </a>
+  </nav>
+  <button class="hamburger" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<div id="map-container">
+  <img id="planet-map" src="projects.webp"
+       alt="Three planets: ROS (left), bchomp (centre), slotmap (right)">
+  <div class="hotspot" data-planet="ROS"></div>
+  <div class="hotspot" data-planet="bchomp"></div>
+  <div class="hotspot" data-planet="slotmap"></div>
+</div>
+
+<div id="callout" role="tooltip">
+  <p class="callout-title"></p>
+  <p class="callout-tags"></p>
+  <p class="callout-desc"></p>
+  <a class="callout-link" target="_blank" rel="noopener noreferrer">View on GitHub &#8594;</a>
+</div>
+
+<div id="hint">&#9670;&nbsp; Click a planet to explore &nbsp;&middot;&nbsp; click again to visit</div>
+
+<div id="zoom-veil"></div>
+
+<script>
+(function () {
+  var PLANETS = [
+    { name: 'ROS',     cx: 530,  cy: 950,  r: 300,
+      url:   'https://github.com/twiggler/ROS',
+      title: 'Roel OS',
+      tags:  'C++ \u00B7 Assembly \u00B7 x64',
+      desc:  'A hobby x64 operating system built from scratch. Kernel, ELF binary loader, virtual memory with paging, and IPC via shared memory. Runs and debugs in QEMU.' },
+    { name: 'bchomp',  cx: 1390, cy: 617,  r: 350,
+      url:   'https://github.com/twiggler/bchomp',
+      title: 'bchomp',
+      tags:  'Python \u00B7 Parser \u00B7 Functional',
+      desc:  'A Python parser-combinator library for declarative binary parsing. Compose lazy, streaming, relocatable parsers into readable grammars \u2014 showcased with a full SQLite file parser.' },
+    { name: 'slotmap', cx: 2312, cy: 965, r: 300,
+      url:   'https://github.com/twiggler/slotmap',
+      title: 'slotmap \u2605 42',
+      tags:  'C++17 \u00B7 Game Dev \u00B7 Data Structures',
+      desc:  'A C++17 header-only sequence container with generational weak-reference keys, ideal for game entity management. O(1) alloc/dealloc, zero-overhead lookup, auto-invalidating keys on free.' }
+  ];
+
+  var img       = document.getElementById('planet-map');
+  var container = document.getElementById('map-container');
+  var callout   = document.getElementById('callout');
+  var hint      = document.getElementById('hint');
+  var veil      = document.getElementById('zoom-veil');
+  var hotspots  = Array.prototype.slice.call(document.querySelectorAll('.hotspot'));
+  var hintDone  = false;
+  var active    = null;
+
+  /* ── Rendered rectangle of the image (accounting for object-fit:contain) ── */
+  function getRenderedRect() {
+    var cw = img.offsetWidth, ch = img.offsetHeight;
+    var iw = img.naturalWidth, ih = img.naturalHeight;
+    if (!iw || !ih) return null;
+    var scale = Math.min(cw / iw, ch / ih);
+    var rw = iw * scale, rh = ih * scale;
+    return { x: (cw - rw) / 2, y: (ch - rh) / 2, w: rw, h: rh, scale: scale };
+  }
+
+  /* ── Position circular hotspot divs over each planet ── */
+  function positionHotspots() {
+    var r = getRenderedRect();
+    if (!r) return;
+    hotspots.forEach(function (el) {
+      var p = PLANETS.find(function (x) { return x.name === el.dataset.planet; });
+      var size = p.r * 2 * r.scale;
+      el.style.left   = (r.x + (p.cx - p.r) * r.scale) + 'px';
+      el.style.top    = (r.y + (p.cy - p.r) * r.scale) + 'px';
+      el.style.width  = size + 'px';
+      el.style.height = size + 'px';
+    });
+  }
+
+  img.addEventListener('load', positionHotspots);
+  if (img.complete && img.naturalWidth) positionHotspots();
+  /* Double-rAF: wait for Chrome to finish layout after orientation/resize */
+  window.addEventListener('resize', function () {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(positionHotspots);
+    });
+  });
+
+  /* ── Show / place callout ── */
+  function showCallout(planet) {
+    if (!hintDone) { hint.classList.add('hidden'); hintDone = true; }
+    active = planet;
+    callout.querySelector('.callout-title').textContent = planet.title;
+    callout.querySelector('.callout-tags').textContent  = planet.tags;
+    callout.querySelector('.callout-desc').textContent  = planet.desc;
+    callout.querySelector('.callout-link').href         = planet.url;
+    callout.classList.add('visible');
+    placeCallout(planet);
+  }
+
+  function hideCallout() {
+    callout.classList.remove('visible');
+    active = null;
+  }
+
+  function placeCallout(planet) {
+    var r  = getRenderedRect();
+    if (!r) return;
+    /* Planet centre in viewport coords */
+    var cr  = container.getBoundingClientRect();
+    var pcx = cr.left + r.x + planet.cx * r.scale;
+    var pcy = cr.top  + r.y + planet.cy * r.scale;
+    var pr  = planet.r * r.scale;
+
+    /* Measure callout off-screen first */
+    callout.style.left = '-9999px';
+    callout.style.top  = '-9999px';
+    var cw = callout.offsetWidth;
+    var ch = callout.offsetHeight;
+
+    /* Prefer above the planet */
+    var cx = pcx - cw / 2;
+    var cy = pcy - pr - ch - 14;
+
+    /* Flip below if too close to the header */
+    if (cy < 68) cy = pcy + pr + 14;
+
+    /* Clamp to viewport */
+    cx = Math.max(8, Math.min(cx, window.innerWidth  - cw - 8));
+    cy = Math.max(68, Math.min(cy, window.innerHeight - ch - 8));
+
+    callout.style.left = cx + 'px';
+    callout.style.top  = cy + 'px';
+  }
+
+  /* ── Zoom into planet then navigate ── */
+  function zoomAndNavigate(planet) {
+    var r  = getRenderedRect();
+    /* Origin relative to #map-container */
+    var ox = r.x + planet.cx * r.scale;
+    var oy = r.y + planet.cy * r.scale;
+    hideCallout();
+    container.style.transformOrigin = ox + 'px ' + oy + 'px';
+    container.classList.add('zooming');
+    veil.classList.add('zooming');
+    setTimeout(function () { window.location.href = planet.url; }, 1420);
+  }
+
+  /* ── Hotspot interactions ── */
+  hotspots.forEach(function (el) {
+    var planet = PLANETS.find(function (x) { return x.name === el.dataset.planet; });
+
+    /* Click / tap: first click shows callout, second click on same planet zooms */
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (active === planet && callout.classList.contains('visible')) {
+        zoomAndNavigate(planet);
+      } else {
+        showCallout(planet);
+      }
+    });
+  });
+
+  /* Tap outside → dismiss callout */
+  document.addEventListener('click', function () { if (active) hideCallout(); });
+
+  /* Tapping the callout card (not the GitHub link) zooms in */
+  callout.addEventListener('click', function (e) {
+    if (!active || e.target.tagName === 'A') return;
+    e.stopPropagation();
+    zoomAndNavigate(active);
+  });
+
+  /* Reset zoom state when browser restores page from bfcache (back button) */
+  /* Reset zoom state on any page-show (bfcache restore OR Android app-open back) */
+  window.addEventListener('pageshow', function () {
+    container.classList.remove('zooming');
+    veil.classList.remove('zooming');
+  });
+
+  /* Portrait hint dismiss */
+  document.getElementById('portrait-hint-close').addEventListener('click', function () {
+    document.getElementById('portrait-hint').classList.add('dismissed');
+  });
+
+  /* Landscape tab: toggle header visibility */
+  document.getElementById('landscape-tab').addEventListener('click', function () {
+    var visible = document.body.classList.toggle('header-visible');
+    this.setAttribute('aria-expanded', String(visible));
+    /* Re-position hotspots after the container top transition */
+    setTimeout(positionHotspots, 260);
+  });
+
+  /* Hamburger toggle */
+  document.getElementById('nav-toggle').addEventListener('click', function () {
+    var nav  = document.getElementById('main-nav');
+    var open = nav.classList.toggle('open');
+    this.setAttribute('aria-expanded', String(open));
+  });
+}());
+</script>
+</body>
+</html>
