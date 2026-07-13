@@ -397,11 +397,12 @@
 
   img.addEventListener('load', positionHotspots);
   if (img.complete && img.naturalWidth) positionHotspots();
-  /* Double-rAF: wait for Chrome to finish layout after orientation/resize */
-  window.addEventListener('resize', function () {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(positionHotspots);
-    });
+  /* Reposition immediately on resize (desktop / no-transition cases) */
+  window.addEventListener('resize', function () { requestAnimationFrame(positionHotspots); });
+  window.addEventListener('orientationchange', function () { requestAnimationFrame(positionHotspots); });
+  /* Reposition once the container's CSS top-transition ends (mobile landscape toggle) */
+  container.addEventListener('transitionend', function (e) {
+    if (e.propertyName === 'top') positionHotspots();
   });
 
   /* ── Show / place callout ── */
@@ -489,11 +490,14 @@
     zoomAndNavigate(active);
   });
 
-  /* Reset zoom state when browser restores page from bfcache (back button) */
-  /* Reset zoom state on any page-show (bfcache restore OR Android app-open back) */
-  window.addEventListener('pageshow', function () {
+  /* Reset zoom state: covers bfcache restore, Android app-open, and tab-switch back */
+  function resetZoom() {
     container.classList.remove('zooming');
     veil.classList.remove('zooming');
+  }
+  window.addEventListener('pageshow', resetZoom);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') resetZoom();
   });
 
   /* Portrait hint dismiss */
@@ -505,8 +509,7 @@
   document.getElementById('landscape-tab').addEventListener('click', function () {
     var visible = document.body.classList.toggle('header-visible');
     this.setAttribute('aria-expanded', String(visible));
-    /* Re-position hotspots after the container top transition */
-    setTimeout(positionHotspots, 260);
+    /* positionHotspots is called by the transitionend listener above */
   });
 
   /* Hamburger toggle */
