@@ -1,0 +1,41 @@
+name: Cross-browser layout check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    # Same image used locally via podman — guarantees identical browsers + deps.
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    # Actions overrides HOME to /github/home (not root-owned); Firefox refuses to
+    # launch unless HOME is owned by the current user, so pin it back to /root.
+    env:
+      HOME: /root
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Same script the justfile runs locally, so CI and local never drift.
+      # Browsers + PLAYWRIGHT_BROWSERS_PATH come preinstalled in the image.
+      - name: Install deps and run layout tests
+        run: sh scripts/run-tests.sh
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
