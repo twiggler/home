@@ -243,7 +243,7 @@
 
 <script>
 (function () {
-  var PLANETS = [
+  const PLANETS = [
     { name: 'ROS',     cx: 530,  cy: 950,  r: 300,
       url:   'https://github.com/twiggler/ROS',
       title: 'Roel OS',
@@ -261,46 +261,46 @@
       desc:  'A C++17 header-only sequence container with generational weak-reference keys, ideal for game entity management. O(1) alloc/dealloc, zero-overhead lookup, auto-invalidating keys on free.' }
   ];
 
-  var img       = document.getElementById('planet-map');
-  var container = document.getElementById('map-container');
-  var callout   = document.getElementById('callout');
-  var hint      = document.getElementById('hint');
-  var veil      = document.getElementById('zoom-veil');
-  var hotspots  = Array.prototype.slice.call(document.querySelectorAll('.hotspot'));
-  var hintDone  = false;
-  var active    = null;
+  const img       = document.getElementById('planet-map');
+  const container = document.getElementById('map-container');
+  const callout   = document.getElementById('callout');
+  const hint      = document.getElementById('hint');
+  const veil      = document.getElementById('zoom-veil');
+  const hotspots  = Array.from(document.querySelectorAll('.hotspot'));
+  let hintDone  = false;
+  let active    = null;
 
   /* ── Rendered rectangle of the image (accounting for object-fit:contain) ── */
   function getRenderedRect() {
-    var cw = img.offsetWidth, ch = img.offsetHeight;
-    var iw = img.naturalWidth, ih = img.naturalHeight;
+    const cw = img.offsetWidth, ch = img.offsetHeight;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
     if (!iw || !ih) return null;
-    var scale = Math.min(cw / iw, ch / ih);
-    var rw = iw * scale, rh = ih * scale;
-    return { x: (cw - rw) / 2, y: (ch - rh) / 2, w: rw, h: rh, scale: scale };
+    const scale = Math.min(cw / iw, ch / ih);
+    const rw = iw * scale, rh = ih * scale;
+    return { x: (cw - rw) / 2, y: (ch - rh) / 2, w: rw, h: rh, scale };
   }
 
   /* ── Position circular hotspot divs over each planet ── */
   function positionHotspots() {
-    var r = getRenderedRect();
+    const r = getRenderedRect();
     if (!r) return;
-    hotspots.forEach(function (el) {
-      var p = PLANETS.find(function (x) { return x.name === el.dataset.planet; });
-      var size = p.r * 2 * r.scale;
-      el.style.left   = (r.x + (p.cx - p.r) * r.scale) + 'px';
-      el.style.top    = (r.y + (p.cy - p.r) * r.scale) + 'px';
-      el.style.width  = size + 'px';
-      el.style.height = size + 'px';
+    hotspots.forEach((el) => {
+      const p = PLANETS.find((x) => x.name === el.dataset.planet);
+      const size = p.r * 2 * r.scale;
+      el.style.left   = `${r.x + (p.cx - p.r) * r.scale}px`;
+      el.style.top    = `${r.y + (p.cy - p.r) * r.scale}px`;
+      el.style.width  = `${size}px`;
+      el.style.height = `${size}px`;
     });
   }
 
   img.addEventListener('load', positionHotspots);
   if (img.complete && img.naturalWidth) positionHotspots();
   /* Reposition immediately on resize (desktop / no-transition cases) */
-  window.addEventListener('resize', function () { requestAnimationFrame(positionHotspots); });
-  window.addEventListener('orientationchange', function () { requestAnimationFrame(positionHotspots); });
+  window.addEventListener('resize', () => requestAnimationFrame(positionHotspots));
+  window.addEventListener('orientationchange', () => requestAnimationFrame(positionHotspots));
   /* Reposition once the container's CSS top-transition ends (mobile landscape toggle) */
-  container.addEventListener('transitionend', function (e) {
+  container.addEventListener('transitionend', (e) => {
     if (e.propertyName === 'top') positionHotspots();
   });
 
@@ -322,23 +322,23 @@
   }
 
   function placeCallout(planet) {
-    var r  = getRenderedRect();
+    const r  = getRenderedRect();
     if (!r) return;
     /* Planet centre in viewport coords */
-    var cr  = container.getBoundingClientRect();
-    var pcx = cr.left + r.x + planet.cx * r.scale;
-    var pcy = cr.top  + r.y + planet.cy * r.scale;
-    var pr  = planet.r * r.scale;
+    const cr  = container.getBoundingClientRect();
+    const pcx = cr.left + r.x + planet.cx * r.scale;
+    const pcy = cr.top  + r.y + planet.cy * r.scale;
+    const pr  = planet.r * r.scale;
 
     /* Measure callout off-screen first */
     callout.style.left = '-9999px';
     callout.style.top  = '-9999px';
-    var cw = callout.offsetWidth;
-    var ch = callout.offsetHeight;
+    const cw = callout.offsetWidth;
+    const ch = callout.offsetHeight;
 
     /* Prefer above the planet */
-    var cx = pcx - cw / 2;
-    var cy = pcy - pr - ch - 14;
+    let cx = pcx - cw / 2;
+    let cy = pcy - pr - ch - 14;
 
     /* Flip below if too close to the header */
     if (cy < 68) cy = pcy + pr + 14;
@@ -347,29 +347,29 @@
     cx = Math.max(8, Math.min(cx, window.innerWidth  - cw - 8));
     cy = Math.max(68, Math.min(cy, window.innerHeight - ch - 8));
 
-    callout.style.left = cx + 'px';
-    callout.style.top  = cy + 'px';
+    callout.style.left = `${cx}px`;
+    callout.style.top  = `${cy}px`;
   }
 
   /* ── Zoom into planet then navigate ── */
   function zoomAndNavigate(planet) {
-    var r  = getRenderedRect();
+    const r  = getRenderedRect();
     /* Origin relative to #map-container */
-    var ox = r.x + planet.cx * r.scale;
-    var oy = r.y + planet.cy * r.scale;
+    const ox = r.x + planet.cx * r.scale;
+    const oy = r.y + planet.cy * r.scale;
     hideCallout();
-    container.style.transformOrigin = ox + 'px ' + oy + 'px';
+    container.style.transformOrigin = `${ox}px ${oy}px`;
     container.classList.add('zooming');
     veil.classList.add('zooming');
-    setTimeout(function () { window.location.href = planet.url; }, 1420);
+    setTimeout(() => { window.location.href = planet.url; }, 1420);
   }
 
   /* ── Hotspot interactions ── */
-  hotspots.forEach(function (el) {
-    var planet = PLANETS.find(function (x) { return x.name === el.dataset.planet; });
+  hotspots.forEach((el) => {
+    const planet = PLANETS.find((x) => x.name === el.dataset.planet);
 
     /* Click / tap: first click shows callout, second click on same planet zooms */
-    el.addEventListener('click', function (e) {
+    el.addEventListener('click', (e) => {
       e.stopPropagation();
       if (active === planet && callout.classList.contains('visible')) {
         zoomAndNavigate(planet);
@@ -380,10 +380,10 @@
   });
 
   /* Tap outside → dismiss callout */
-  document.addEventListener('click', function () { if (active) hideCallout(); });
+  document.addEventListener('click', () => { if (active) hideCallout(); });
 
   /* Tapping the callout card (not the GitHub link) zooms in */
-  callout.addEventListener('click', function (e) {
+  callout.addEventListener('click', (e) => {
     if (!active || e.target.tagName === 'A') return;
     e.stopPropagation();
     zoomAndNavigate(active);
@@ -395,18 +395,18 @@
     veil.classList.remove('zooming');
   }
   window.addEventListener('pageshow', resetZoom);
-  document.addEventListener('visibilitychange', function () {
+  document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') resetZoom();
   });
 
   /* Portrait hint dismiss */
-  document.getElementById('portrait-hint-close').addEventListener('click', function () {
+  document.getElementById('portrait-hint-close').addEventListener('click', () => {
     document.getElementById('portrait-hint').classList.add('dismissed');
   });
 
   /* Landscape tab: toggle header visibility */
   document.getElementById('landscape-tab').addEventListener('click', function () {
-    var visible = document.body.classList.toggle('header-visible');
+    const visible = document.body.classList.toggle('header-visible');
     this.setAttribute('aria-expanded', String(visible));
     /* positionHotspots is called by the transitionend listener above */
   });

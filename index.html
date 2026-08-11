@@ -229,29 +229,29 @@
 <script>
 /* ── Starfield: draw once at load, never again ── */
 (function () {
-  var c = document.getElementById('stars');
-  var ctx = c.getContext('2d');
+  const c = document.getElementById('stars');
+  const ctx = c.getContext('2d');
   c.width  = window.innerWidth;
   c.height = window.innerHeight;
-  for (var i = 0; i < 220; i++) {
-    var x = Math.random() * c.width;
-    var y = Math.random() * c.height;
-    var r = Math.random() * 1.3 + 0.15;
-    var a = (Math.random() * 0.55 + 0.4).toFixed(2);
+  for (let i = 0; i < 220; i++) {
+    const x = Math.random() * c.width;
+    const y = Math.random() * c.height;
+    const r = Math.random() * 1.3 + 0.15;
+    const a = (Math.random() * 0.55 + 0.4).toFixed(2);
     ctx.beginPath();
     ctx.arc(x, y, r, 0, 6.2832);
-    ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
     ctx.fill();
   }
 }());
 
 /* ── Crawl: fetch data, build HTML, start CSS animation (runs once) ── */
 (async function () {
-  var scroll = document.getElementById('crawl-scroll');
+  const scroll = document.getElementById('crawl-scroll');
 
-  var data = [];
+  let data = [];
   try {
-    var res = await fetch('cv-data.json');
+    const res = await fetch('cv-data.json');
     if (res.ok) data = await res.json();
   } catch (_) {}
 
@@ -263,26 +263,24 @@
     }];
   }
 
-  var ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
-               'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+  const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
+                 'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 
-  function esc(s) {
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  const esc = (s) => String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  var html = data.map(function (item, i) {
-    var bullets = (item.bullets || [])
-      .map(function (b) { return '<p class="ep-bullet">' + esc(b) + '</p>'; })
+  const html = data.map((item, i) => {
+    const bullets = (item.bullets || [])
+      .map((b) => `<p class="ep-bullet">${esc(b)}</p>`)
       .join('\n');
-    var details = (item.details || []).filter(Boolean).join(' \u00B7 ');
+    const details = (item.details || []).filter(Boolean).join(' \u00B7 ');
     return [
       '<div class="episode">',
       '  <hr class="ep-divider">',
-      '  <p class="ep-num">Episode ' + (ROMAN[i] || String(i + 1)) + '</p>',
-      '  <p class="ep-company">' + esc(item.company) + '</p>',
-      details ? '  <p class="ep-details">' + esc(details) + '</p>' : '',
+      `  <p class="ep-num">Episode ${ROMAN[i] || String(i + 1)}</p>`,
+      `  <p class="ep-company">${esc(item.company)}</p>`,
+      details ? `  <p class="ep-details">${esc(details)}</p>` : '',
       bullets,
       '</div>'
     ].filter(Boolean).join('\n');
@@ -291,33 +289,34 @@
   scroll.insertAdjacentHTML('beforeend', html);
 
   /* Set animation parameters after DOM is updated */
-  requestAnimationFrame(function () {
-    var tiltEl  = scroll.parentElement;          /* .crawl-tilt */
-    var tiltH   = tiltEl.offsetHeight;
-    var contentH = scroll.scrollHeight;
-    var end      = -(tiltH + contentH + 100);    /* px to scroll before loop */
-    var totalDist = Math.abs(end);
-    var speed    = 50;                            /* px / second */
-    var dur      = Math.round(totalDist / speed);
+  requestAnimationFrame(() => {
+    const tiltEl   = scroll.parentElement;        /* .crawl-tilt */
+    const tiltH    = tiltEl.offsetHeight;
+    const contentH = scroll.scrollHeight;
+    const end      = -(tiltH + contentH + 100);   /* px to scroll before loop */
+    const totalDist = Math.abs(end);
+    const speed    = 50;                           /* px / second */
+    const dur      = Math.round(totalDist / speed);
 
-    scroll.style.setProperty('--crawl-end', end + 'px');
-    scroll.style.setProperty('--crawl-dur', dur + 's');
+    scroll.style.setProperty('--crawl-end', `${end}px`);
+    scroll.style.setProperty('--crawl-dur', `${dur}s`);
 
-    var overlay = document.getElementById('start-overlay');
-    var lc      = document.getElementById('laser-canvas');
-    var music   = document.getElementById('music');
-    var fired   = false;
+    const overlay = document.getElementById('start-overlay');
+    const lc      = document.getElementById('laser-canvas');
+    const music   = document.getElementById('music');
+    let fired     = false;
 
     function playTieSound() {
       try {
-        var ac = new (window.AudioContext || window.webkitAudioContext)();
-        [820, 900].forEach(function (freq) {
-          var osc = ac.createOscillator();
-          var gain = ac.createGain();
-          var shaper = ac.createWaveShaper();
-          var n = 256, curve = new Float32Array(n);
-          for (var i = 0; i < n; i++) {
-            var x = i * 2 / n - 1;
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        [820, 900].forEach((freq) => {
+          const osc = ac.createOscillator();
+          const gain = ac.createGain();
+          const shaper = ac.createWaveShaper();
+          const n = 256;
+          const curve = new Float32Array(n);
+          for (let i = 0; i < n; i++) {
+            const x = i * 2 / n - 1;
             curve[i] = (Math.PI + 180) * x / (Math.PI + 180 * Math.abs(x));
           }
           shaper.curve = curve;
@@ -333,14 +332,15 @@
     }
 
     function drawImpact(tx, ty) {
-      var ic = document.getElementById('impact-canvas');
+      const ic = document.getElementById('impact-canvas');
       ic.width = window.innerWidth; ic.height = window.innerHeight;
-      var ctx = ic.getContext('2d');
-      var t0 = null, dur = 420;
+      const ctx = ic.getContext('2d');
+      let t0 = null;
+      const dur = 420;
       function frame(ts) {
         if (!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / dur);
-        var a = 1 - p;
+        const p = Math.min(1, (ts - t0) / dur);
+        const a = 1 - p;
         ctx.clearRect(0, 0, ic.width, ic.height);
         /* Expanding ring */
         ctx.save();
@@ -351,10 +351,10 @@
         ctx.beginPath(); ctx.arc(tx, ty, p * 58, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
         /* 8 sparks radiating outward */
-        for (var i = 0; i < 8; i++) {
-          var angle = (i / 8) * Math.PI * 2;
-          var r1 = p * 22;
-          var r2 = r1 + (16 + (i % 3) * 12) * (1 - p * 0.35);
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          const r1 = p * 22;
+          const r2 = r1 + (16 + (i % 3) * 12) * (1 - p * 0.35);
           ctx.save();
           ctx.globalAlpha = a * 0.95;
           ctx.strokeStyle = '#DFFFDF';
@@ -375,20 +375,21 @@
     function fireLasers(tx, ty, withSound, done) {
       lc.width  = window.innerWidth;
       lc.height = window.innerHeight;
-      var ctx = lc.getContext('2d');
+      const ctx = lc.getContext('2d');
       /* Twin cannon sources: top-left and top-right, like a TIE above the viewer */
-      var sources = [
+      const sources = [
         { x: window.innerWidth * 0.08, y: window.innerHeight + 20 },
         { x: window.innerWidth * 0.92, y: window.innerHeight + 20 }
       ];
-      var t0 = null, dur = 520;
+      let t0 = null;
+      const dur = 520;
       function frame(ts) {
         if (!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / dur);
+        const p = Math.min(1, (ts - t0) / dur);
         /* Hold full brightness until 60%, then fade out */
-        var alpha = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
+        const alpha = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
         ctx.clearRect(0, 0, lc.width, lc.height);
-        sources.forEach(function (src) {
+        sources.forEach((src) => {
           /* Outer glow */
           ctx.save();
           ctx.globalAlpha = alpha * 0.45;
@@ -420,17 +421,17 @@
       if (e && e.target && e.target.classList.contains('begin-btn')) {
         e.target.classList.add('hit');
       }
-      var x = (e && e.clientX != null) ? e.clientX : window.innerWidth  / 2;
-      var y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
-      fireLasers(x, y, !muted, function () {
+      const x = (e && e.clientX != null) ? e.clientX : window.innerWidth  / 2;
+      const y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
+      fireLasers(x, y, !muted, () => {
         overlay.remove();
-        if (!muted) music.play().catch(function () {});
+        if (!muted) music.play().catch(() => {});
         scroll.classList.add('running');
       });
     }
-    document.getElementById('btn-sound').addEventListener('click', function (e) { begin(e, false); });
-    document.getElementById('btn-muted').addEventListener('click', function (e) { begin(e, true);  });
-    document.addEventListener('keydown', function (e) { begin(e, false); }, { once: true });
+    document.getElementById('btn-sound').addEventListener('click', (e) => begin(e, false));
+    document.getElementById('btn-muted').addEventListener('click', (e) => begin(e, true));
+    document.addEventListener('keydown', (e) => begin(e, false), { once: true });
   });
 }());
 </script>
