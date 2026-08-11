@@ -41,6 +41,13 @@ for (const p of PAGES) {
       await expect(page.locator('.site-nav a[href="projects.html"]')).toHaveCount(1);
     });
 
+    test('shows the owner name and GitHub link', async ({ page }) => {
+      await expect(page.locator('.site-name')).toHaveText('Roel de Jong');
+      const gh = page.locator('.site-nav a[href="https://github.com/twiggler"]');
+      await expect(gh).toHaveCount(1);
+      await expect(gh).toHaveAttribute('target', '_blank');
+    });
+
     test('hamburger matches viewport', async ({ page }, testInfo) => {
       const width = page.viewportSize()?.width ?? 0;
       const hamburger = page.locator('.hamburger').first();

@@ -1,0 +1,79 @@
+/* Shared across all pages: base reset + site header.
+   Page-specific html/body rules (background, overflow) stay inline per page. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Shared header ── */
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 60px;
+  background: rgba(0,0,0,0.92);
+  border-bottom: 1px solid rgba(255,232,31,0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.5rem;
+  z-index: 100;
+}
+.site-header img {
+  height: 38px;
+  width: 56px;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+.site-name {
+  color: #FFE81F;
+  font-family: 'News Cycle', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  flex: 1;
+}
+.site-nav { display: flex; gap: 0.25rem; }
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-family: 'News Cycle', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.site-nav a:hover, .site-nav a.active {
+  color: #FFE81F;
+  background: rgba(255,232,31,0.08);
+}
+.site-nav svg { width: 14px; height: 14px; flex-shrink: 0; }
+/* ── Hamburger ── */
+.hamburger {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; background: none; border: none;
+  cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+.hamburger span {
+  display: block; width: 20px; height: 2px;
+  background: #FFE81F; border-radius: 2px; transition: 0.2s;
+}
+@media (max-width: 650px) {
+  .hamburger { display: flex; }
+  .site-nav {
+    display: none; flex-direction: column;
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: rgba(0,0,0,0.97);
+    border-bottom: 1px solid rgba(255,232,31,0.25);
+    padding: 0.5rem 1rem 1rem; z-index: 99;
+  }
+  .site-nav.open { display: flex; }
+  .site-nav a {
+    padding: 0.75rem 0.5rem; border-radius: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .site-nav a:last-child { border-bottom: none; }
+}
