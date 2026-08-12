@@ -5,10 +5,10 @@
       "Dissect team Rijswijk"
     ],
     "bullets": [
-      "Migrated over 30 individual projects into a monorepository with uv and custom tooling. Re-engineered CI/CD.",
+      "Migrated over 30 individual Python projects into a monorepository with uv and custom tooling. Re-engineered CI/CD.",
       "Drive initiative to improve observability, finding numerous instances where forensics evidence was missed.",
-      "Added python nfs client client for data acquisition, speeding up acquisition of virtual machines in time critical investigations.",
-      "Reliability improvements to filesystems, drastically reducing memory usage."
+      "Implemented a Python NFS client for data acquisition, accelerating the retrieval of virtual machines during time-critical investigations.",
+      "Improved the reliability and memory efficiency of Python filesystem parsers, resulting in significant resource optimization."
     ]
   },
   {
@@ -17,7 +17,7 @@
       "App team Amsterdam"
     ],
     "bullets": [
-      "Extended the data pipeline and frontend capabilities to model complex temporal patient events, delivering a solution for researchers to track metrics of patients over time.",
+      "Expanded the Node.js data pipeline and Angular web application functionalities to model complex temporal patient events, enabling researchers to seamlessly track patient metrics over time.",
       "Championed the integration of Cypress end-to-end testing into the CI/CD pipeline, ensuring automated validation on every pull request commit to prevent regressions, significantly increasing stakeholder confidence in release stability."
     ]
   },
