@@ -13,3 +13,8 @@ lock:
 # Open the last HTML report from inside the container.
 report:
     {{run}} sh -c "npx playwright show-report --host 0.0.0.0"
+
+# Regenerate optimized portrait images from the source master (host ImageMagick).
+images:
+    magick assets/src/portrait.jpg -auto-orient -strip -crop 2132x1450+1000+700 +repage -resize 220x -quality 82 assets/portrait-header.webp
+    magick assets/src/portrait.jpg -auto-orient -strip -resize 1200x -quality 82 assets/portrait-large.webp

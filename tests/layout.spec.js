@@ -48,6 +48,15 @@ for (const p of PAGES) {
       await expect(gh).toHaveAttribute('target', '_blank');
     });
 
+    test('portrait lightbox opens and closes', async ({ page }) => {
+      const dialog = page.locator('.portrait-lightbox');
+      await expect(dialog).toBeHidden();
+      await page.locator('.portrait-btn').click();
+      await expect(dialog).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(dialog).toBeHidden();
+    });
+
     test('hamburger matches viewport', async ({ page }, testInfo) => {
       const width = page.viewportSize()?.width ?? 0;
       const hamburger = page.locator('.hamburger').first();

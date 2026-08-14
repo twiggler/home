@@ -19,9 +19,23 @@
   height: 38px;
   width: 56px;
   object-fit: cover;
-  object-position: center 20%;
+  object-position: center;
   border-radius: 5px;
   flex-shrink: 0;
+}
+/* Clickable portrait that opens the lightbox */
+.portrait-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: 5px;
+}
+.portrait-btn:focus-visible {
+  outline: 2px solid #FFE81F;
+  outline-offset: 2px;
 }
 .site-name {
   color: #FFE81F;
@@ -76,4 +90,53 @@
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
   .site-nav a:last-child { border-bottom: none; }
+}
+
+/* ── Portrait lightbox ── */
+.portrait-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0,0,0,0.85);
+}
+.portrait-lightbox[hidden] { display: none; }
+.portrait-lightbox img {
+  max-width: min(92vw, 900px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+}
+.portrait-lightbox__close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  width: 44px; height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,232,31,0.5);
+  border-radius: 50%;
+  color: #FFE81F;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.portrait-lightbox__close:hover,
+.portrait-lightbox__close:focus-visible {
+  background: rgba(255,232,31,0.15);
+  outline: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .portrait-lightbox { animation: portrait-lightbox-fade 0.15s ease; }
+  @keyframes portrait-lightbox-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+@media (max-width: 600px) {
+  .portrait-lightbox { padding: 0; }
+  .portrait-lightbox img { max-width: 100vw; max-height: 100vh; border-radius: 0; }
 }
