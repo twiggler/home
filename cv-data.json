@@ -6,9 +6,9 @@
     ],
     "bullets": [
       "Migrated over 30 individual Python projects into a monorepository with uv and custom tooling. Re-engineered CI/CD.",
-      "Drive initiative to improve observability, finding numerous instances where forensics evidence was missed.",
+      "Drove initiative to improve observability, finding numerous instances where forensics evidence was missed.",
       "Implemented a Python NFS client for data acquisition, accelerating the retrieval of virtual machines during time-critical investigations.",
-      "Improved the reliability and memory efficiency of Python filesystem parsers, resulting in significant resource optimization."
+      "Improved the reliability and memory efficiency of Python filesystem parsers by resolving unbounded memory usage, preventing system crashes during heavy data processing."
     ]
   },
   {
