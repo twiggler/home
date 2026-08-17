@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import path from 'path';
+import { blockThirdParty } from './helpers.js';
 
 const PAGES = [
   { name: 'index', path: '/index.html' },
@@ -16,17 +17,6 @@ async function dismissStartOverlay(page) {
     await page.locator('#btn-muted').click();
     await overlay.waitFor({ state: 'detached', timeout: 5000 });
   }
-}
-
-// Keep the suite hermetic: block third-party requests (e.g. Google Fonts) so a
-// slow or unreachable CDN can't stall page load and make the tests flaky.
-async function blockThirdParty(page) {
-  await page.route('**/*', (route) => {
-    const host = new URL(route.request().url()).hostname;
-    return host === '127.0.0.1' || host === 'localhost'
-      ? route.continue()
-      : route.abort();
-  });
 }
 
 for (const p of PAGES) {
