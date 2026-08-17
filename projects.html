@@ -44,6 +44,14 @@
       border-radius: 50%;
       cursor: pointer;
       z-index: 5;
+      background: transparent;
+      border: none;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hotspot:focus-visible {
+      outline: 3px solid #FFE81F;
+      outline-offset: 4px;
     }
     /* Radar ping ring */
     .hotspot::after {
@@ -207,6 +215,14 @@
     }
     #zoom-veil.zooming { opacity: 1; }
 
+    /* ── Reduced motion: disable warp / ping / pulse animations ── */
+    @media (prefers-reduced-motion: reduce) {
+      .hotspot::after { animation: none; opacity: 0.5; }
+      #hint { animation: none; }
+      #map-container.zooming { animation: none; }
+      #callout { transition: none; }
+    }
+
   </style>
 </head>
 <body>
@@ -222,15 +238,35 @@
 
 <site-header active="projects"></site-header>
 
-<div id="map-container">
+<main id="map-container">
+  <h1 class="visually-hidden">Projects</h1>
   <img id="planet-map" src="assets/projects.webp"
        alt="Three planets: ROS (left), bchomp (centre), slotmap (right)">
-  <div class="hotspot" data-planet="ROS"></div>
-  <div class="hotspot" data-planet="bchomp"></div>
-  <div class="hotspot" data-planet="slotmap"></div>
-</div>
+  <button type="button" class="hotspot" data-planet="ROS"
+          aria-label="Roel OS — C++ operating system. Show project details."></button>
+  <button type="button" class="hotspot" data-planet="bchomp"
+          aria-label="bchomp — Python binary parser library. Show project details."></button>
+  <button type="button" class="hotspot" data-planet="slotmap"
+          aria-label="slotmap — C++17 container library. Show project details."></button>
 
-<div id="callout" role="tooltip">
+  <ul class="visually-hidden">
+    <li>Roel OS (C++, Assembly, x64): a hobby x64 operating system built from
+      scratch — kernel, ELF binary loader, virtual memory with paging, and IPC
+      via shared memory; runs and debugs in QEMU.
+      <a href="https://github.com/twiggler/ROS">View Roel OS on GitHub</a></li>
+    <li>bchomp (Python, Parser, Functional): a Python parser-combinator library
+      for declarative binary parsing — compose lazy, streaming, relocatable
+      parsers into readable grammars, showcased with a full SQLite file parser.
+      <a href="https://github.com/twiggler/bchomp">View bchomp on GitHub</a></li>
+    <li>slotmap (C++17, Game Dev, Data Structures): a header-only sequence
+      container with generational weak-reference keys, ideal for game entity
+      management — O(1) alloc/dealloc, zero-overhead lookup, auto-invalidating
+      keys on free.
+      <a href="https://github.com/twiggler/slotmap">View slotmap on GitHub</a></li>
+  </ul>
+</main>
+
+<div id="callout" role="region" aria-live="polite" aria-label="Project details" inert>
   <p class="callout-title"></p>
   <p class="callout-tags"></p>
   <p class="callout-desc"></p>
@@ -312,12 +348,14 @@
     callout.querySelector('.callout-tags').textContent  = planet.tags;
     callout.querySelector('.callout-desc').textContent  = planet.desc;
     callout.querySelector('.callout-link').href         = planet.url;
+    callout.removeAttribute('inert');
     callout.classList.add('visible');
     placeCallout(planet);
   }
 
   function hideCallout() {
     callout.classList.remove('visible');
+    callout.setAttribute('inert', '');
     active = null;
   }
 
@@ -353,11 +391,16 @@
 
   /* ── Zoom into planet then navigate ── */
   function zoomAndNavigate(planet) {
+    hideCallout();
+    /* Respect reduced-motion: skip the warp animation and go straight there. */
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.location.href = planet.url;
+      return;
+    }
     const r  = getRenderedRect();
     /* Origin relative to #map-container */
     const ox = r.x + planet.cx * r.scale;
     const oy = r.y + planet.cy * r.scale;
-    hideCallout();
     container.style.transformOrigin = `${ox}px ${oy}px`;
     container.classList.add('zooming');
     veil.classList.add('zooming');

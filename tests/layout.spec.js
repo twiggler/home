@@ -1,6 +1,6 @@
-// @ts-check
-const { test, expect } = require('@playwright/test');
-const path = require('path');
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import path from 'path';
 
 const PAGES = [
   { name: 'index', path: '/index.html' },
@@ -18,12 +18,33 @@ async function dismissStartOverlay(page) {
   }
 }
 
+// Keep the suite hermetic: block third-party requests (e.g. Google Fonts) so a
+// slow or unreachable CDN can't stall page load and make the tests flaky.
+async function blockThirdParty(page) {
+  await page.route('**/*', (route) => {
+    const host = new URL(route.request().url()).hostname;
+    return host === '127.0.0.1' || host === 'localhost'
+      ? route.continue()
+      : route.abort();
+  });
+}
+
 for (const p of PAGES) {
   test.describe(p.name, () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto(p.path);
-      await page.waitForLoadState('networkidle');
+      await blockThirdParty(page);
+      // Only wait for the document + local scripts; never for the full load /
+      // networkidle state, which would depend on external resources.
+      await page.goto(p.path, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('.site-header')).toBeVisible();
       if (p.name === 'index') await dismissStartOverlay(page);
+    });
+
+    test('has no detectable accessibility violations', async ({ page }) => {
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+        .analyze();
+      expect(results.violations).toEqual([]);
     });
 
     test('has no horizontal overflow', async ({ page }) => {

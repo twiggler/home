@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="site-header.js"></script>
+  <script type="module" src="home.js"></script>
   <style>
     html, body { height: 100%; overflow: hidden; background: #000; }
 
@@ -91,7 +92,7 @@
       font-size: 1.3rem;
       letter-spacing: 0.28em;
       text-transform: uppercase;
-      opacity: 0.55;
+      opacity: 0.7;
       margin-bottom: 0.55rem;
     }
     .ep-company {
@@ -194,6 +195,22 @@
       .ep-details { font-size: 0.8rem; }
       .ep-bullet  { font-size: 1rem; }
     }
+
+    /* ── Reduced motion: present the crawl as static, scrollable text ── */
+    @media (prefers-reduced-motion: reduce) {
+      .crawl-scene { overflow-y: auto; -webkit-overflow-scrolling: touch; perspective: none; }
+      .crawl-fade  { display: none; }
+      .crawl-tilt  { position: static; transform: none; }
+      .crawl-scroll,
+      .crawl-scroll.running {
+        position: static;
+        transform: none;
+        animation: none;
+        margin: 0 auto;
+        padding: 2rem 0 4rem;
+      }
+      .begin-btn.hit { animation: none; }
+    }
   </style>
 </head>
 <body>
@@ -214,7 +231,8 @@
 
 <canvas id="stars"></canvas>
 
-<div class="crawl-scene">
+<main class="crawl-scene">
+  <h1 class="visually-hidden">Roel de Jong — career history</h1>
   <div class="crawl-fade"></div>
   <div class="crawl-tilt">
     <div class="crawl-scroll" id="crawl-scroll">
@@ -224,216 +242,7 @@
       </div>
     </div>
   </div>
-</div>
+</main>
 
-<script>
-/* ── Starfield: draw once at load, never again ── */
-(function () {
-  const c = document.getElementById('stars');
-  const ctx = c.getContext('2d');
-  c.width  = window.innerWidth;
-  c.height = window.innerHeight;
-  for (let i = 0; i < 220; i++) {
-    const x = Math.random() * c.width;
-    const y = Math.random() * c.height;
-    const r = Math.random() * 1.3 + 0.15;
-    const a = (Math.random() * 0.55 + 0.4).toFixed(2);
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, 6.2832);
-    ctx.fillStyle = `rgba(255,255,255,${a})`;
-    ctx.fill();
-  }
-}());
-
-/* ── Crawl: fetch data, build HTML, start CSS animation (runs once) ── */
-(async function () {
-  const scroll = document.getElementById('crawl-scroll');
-
-  let data = [];
-  try {
-    const res = await fetch('cv-data.json');
-    if (res.ok) data = await res.json();
-  } catch (_) {}
-
-  if (!Array.isArray(data) || data.length === 0) {
-    data = [{
-      company: 'Data Not Yet Available',
-      details: [],
-      bullets: ['Trigger the GitHub Action to sync your CV from Google Docs.']
-    }];
-  }
-
-  const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
-                 'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
-
-  const esc = (s) => String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-
-  const html = data.map((item, i) => {
-    const bullets = (item.bullets || [])
-      .map((b) => `<p class="ep-bullet">${esc(b)}</p>`)
-      .join('\n');
-    const details = (item.details || []).filter(Boolean).join(' \u00B7 ');
-    return [
-      '<div class="episode">',
-      '  <hr class="ep-divider">',
-      `  <p class="ep-num">Episode ${ROMAN[i] || String(i + 1)}</p>`,
-      `  <p class="ep-company">${esc(item.company)}</p>`,
-      details ? `  <p class="ep-details">${esc(details)}</p>` : '',
-      bullets,
-      '</div>'
-    ].filter(Boolean).join('\n');
-  }).join('\n');
-
-  scroll.insertAdjacentHTML('beforeend', html);
-
-  /* Set animation parameters after DOM is updated */
-  requestAnimationFrame(() => {
-    const tiltEl   = scroll.parentElement;        /* .crawl-tilt */
-    const tiltH    = tiltEl.offsetHeight;
-    const contentH = scroll.scrollHeight;
-    const end      = -(tiltH + contentH + 100);   /* px to scroll before loop */
-    const totalDist = Math.abs(end);
-    const speed    = 50;                           /* px / second */
-    const dur      = Math.round(totalDist / speed);
-
-    scroll.style.setProperty('--crawl-end', `${end}px`);
-    scroll.style.setProperty('--crawl-dur', `${dur}s`);
-
-    const overlay = document.getElementById('start-overlay');
-    const lc      = document.getElementById('laser-canvas');
-    const music   = document.getElementById('music');
-    let fired     = false;
-
-    function playTieSound() {
-      try {
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-        [820, 900].forEach((freq) => {
-          const osc = ac.createOscillator();
-          const gain = ac.createGain();
-          const shaper = ac.createWaveShaper();
-          const n = 256;
-          const curve = new Float32Array(n);
-          for (let i = 0; i < n; i++) {
-            const x = i * 2 / n - 1;
-            curve[i] = (Math.PI + 180) * x / (Math.PI + 180 * Math.abs(x));
-          }
-          shaper.curve = curve;
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(freq, ac.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(freq * 0.17, ac.currentTime + 0.42);
-          gain.gain.setValueAtTime(0.45, ac.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.48);
-          osc.connect(shaper); shaper.connect(gain); gain.connect(ac.destination);
-          osc.start(); osc.stop(ac.currentTime + 0.5);
-        });
-      } catch (e) {}
-    }
-
-    function drawImpact(tx, ty) {
-      const ic = document.getElementById('impact-canvas');
-      ic.width = window.innerWidth; ic.height = window.innerHeight;
-      const ctx = ic.getContext('2d');
-      let t0 = null;
-      const dur = 420;
-      function frame(ts) {
-        if (!t0) t0 = ts;
-        const p = Math.min(1, (ts - t0) / dur);
-        const a = 1 - p;
-        ctx.clearRect(0, 0, ic.width, ic.height);
-        /* Expanding ring */
-        ctx.save();
-        ctx.globalAlpha = a * 0.7;
-        ctx.strokeStyle = '#00FF41';
-        ctx.lineWidth = 2.5;
-        ctx.shadowBlur = 14; ctx.shadowColor = '#00FF41';
-        ctx.beginPath(); ctx.arc(tx, ty, p * 58, 0, Math.PI * 2); ctx.stroke();
-        ctx.restore();
-        /* 8 sparks radiating outward */
-        for (let i = 0; i < 8; i++) {
-          const angle = (i / 8) * Math.PI * 2;
-          const r1 = p * 22;
-          const r2 = r1 + (16 + (i % 3) * 12) * (1 - p * 0.35);
-          ctx.save();
-          ctx.globalAlpha = a * 0.95;
-          ctx.strokeStyle = '#DFFFDF';
-          ctx.lineWidth = 1.8;
-          ctx.shadowBlur = 7; ctx.shadowColor = '#00FF41';
-          ctx.beginPath();
-          ctx.moveTo(tx + Math.cos(angle) * r1, ty + Math.sin(angle) * r1);
-          ctx.lineTo(tx + Math.cos(angle) * r2, ty + Math.sin(angle) * r2);
-          ctx.stroke();
-          ctx.restore();
-        }
-        if (p < 1) { requestAnimationFrame(frame); }
-        else { ctx.clearRect(0, 0, ic.width, ic.height); }
-      }
-      requestAnimationFrame(frame);
-    }
-
-    function fireLasers(tx, ty, withSound, done) {
-      lc.width  = window.innerWidth;
-      lc.height = window.innerHeight;
-      const ctx = lc.getContext('2d');
-      /* Twin cannon sources: top-left and top-right, like a TIE above the viewer */
-      const sources = [
-        { x: window.innerWidth * 0.08, y: window.innerHeight + 20 },
-        { x: window.innerWidth * 0.92, y: window.innerHeight + 20 }
-      ];
-      let t0 = null;
-      const dur = 520;
-      function frame(ts) {
-        if (!t0) t0 = ts;
-        const p = Math.min(1, (ts - t0) / dur);
-        /* Hold full brightness until 60%, then fade out */
-        const alpha = p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4;
-        ctx.clearRect(0, 0, lc.width, lc.height);
-        sources.forEach((src) => {
-          /* Outer glow */
-          ctx.save();
-          ctx.globalAlpha = alpha * 0.45;
-          ctx.shadowBlur  = 28;
-          ctx.shadowColor = '#00FF41';
-          ctx.strokeStyle = '#00FF41';
-          ctx.lineWidth   = 9;
-          ctx.beginPath(); ctx.moveTo(src.x, src.y); ctx.lineTo(tx, ty); ctx.stroke();
-          /* Bright white core */
-          ctx.globalAlpha = alpha;
-          ctx.shadowBlur  = 5;
-          ctx.shadowColor = '#CCFFCC';
-          ctx.strokeStyle = '#DFFFDF';
-          ctx.lineWidth   = 2.5;
-          ctx.beginPath(); ctx.moveTo(src.x, src.y); ctx.lineTo(tx, ty); ctx.stroke();
-          ctx.restore();
-        });
-        if (p < 1) { requestAnimationFrame(frame); }
-        else { ctx.clearRect(0, 0, lc.width, lc.height); done(); }
-      }
-      if (withSound) playTieSound();
-      drawImpact(tx, ty);
-      requestAnimationFrame(frame);
-    }
-
-    function begin(e, muted) {
-      if (fired) return;
-      fired = true;
-      if (e && e.target && e.target.classList.contains('begin-btn')) {
-        e.target.classList.add('hit');
-      }
-      const x = (e && e.clientX != null) ? e.clientX : window.innerWidth  / 2;
-      const y = (e && e.clientY != null) ? e.clientY : window.innerHeight / 2;
-      fireLasers(x, y, !muted, () => {
-        overlay.remove();
-        if (!muted) music.play().catch(() => {});
-        scroll.classList.add('running');
-      });
-    }
-    document.getElementById('btn-sound').addEventListener('click', (e) => begin(e, false));
-    document.getElementById('btn-muted').addEventListener('click', (e) => begin(e, true));
-    document.addEventListener('keydown', (e) => begin(e, false), { once: true });
-  });
-}());
-</script>
 </body>
 </html>

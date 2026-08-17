@@ -2,6 +2,7 @@
   "name": "homepage",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Personal homepage of Roel de Jong",
   "scripts": {
     "test": "playwright test",
@@ -9,6 +10,7 @@
     "report": "playwright show-report"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "1.62.1",
     "sirv-cli": "^2.0.2"
   }
