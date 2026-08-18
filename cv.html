@@ -41,10 +41,19 @@
     }
     .cv-toolbar a:hover { background: #21568f; }
     .cv-toolbar svg { width: 14px; height: 14px; }
-    .cv-embed {
+    .cv-embed-wrap {
       flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .cv-embed {
+      position: absolute;
+      top: 0;
+      left: 0;
       border: none;
       width: 100%;
+      height: 100%;
+      transform-origin: top left;
     }
   </style>
 </head>
@@ -76,13 +85,42 @@
       Open in Google Docs
     </a>
   </div>
-  <iframe
-    class="cv-embed"
-    src="https://docs.google.com/document/d/1WmBpj9NsFSwFfTtkKLUIlDCOaudItPhyOD2GfDmb7Lg/preview"
-    title="CV of Roel de Jong"
-    loading="lazy">
-  </iframe>
+  <div class="cv-embed-wrap">
+    <iframe
+      class="cv-embed"
+      src="https://docs.google.com/document/d/1WmBpj9NsFSwFfTtkKLUIlDCOaudItPhyOD2GfDmb7Lg/preview"
+      title="CV of Roel de Jong"
+      loading="lazy">
+    </iframe>
+  </div>
 </main>
+
+<script>
+  // Google Docs reflows to the iframe width; on narrow screens that "mashes"
+  // the document. Render it at a fixed desktop width and scale it to fit.
+  (function () {
+    const DESIGN_WIDTH = 900;
+    const wrap = document.querySelector('.cv-embed-wrap');
+    const frame = document.querySelector('.cv-embed');
+    const fit = () => {
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      if (w >= DESIGN_WIDTH) {
+        frame.style.width = '100%';
+        frame.style.height = '100%';
+        frame.style.transform = 'none';
+        return;
+      }
+      const scale = w / DESIGN_WIDTH;
+      frame.style.width = `${DESIGN_WIDTH}px`;
+      frame.style.height = `${h / scale}px`;
+      frame.style.transform = `scale(${scale})`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+  })();
+</script>
 
 </body>
 </html>
