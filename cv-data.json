@@ -28,7 +28,7 @@
     ],
     "bullets": [
       "Developed an interactive frontend for a flood risk tool, visualizing probability and financial impact metrics to enable rich client presentations by consultants.",
-      "Led the end-to-end architecture and development of a tablet-optimized tool for on-site inspections. Designed a React / TypeScript frontend for survey construction and dynamic report templating, and a Kotlin backend for automated document generation, partially automating manual reporting workflow and resulting in a 30% cost reduction."
+      "Led the end-to-end architecture and development of a tablet-optimized tool for on-site inspections. Designed a React / Next.js / TypeScript frontend for survey construction and dynamic report templating, and a Kotlin backend for automated document generation, partially automating manual reporting workflow and resulting in a 30% cost reduction."
     ]
   },
   {
